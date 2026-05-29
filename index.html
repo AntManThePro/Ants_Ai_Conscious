@@ -461,10 +461,17 @@
                     awareness:   State.awareness,
                     personality: State.personality,
                 };
-                localStorage.setItem(CONFIG.MEMORY_KEY, JSON.stringify(payload));
-                const el = document.getElementById('memoryStatus');
-                if (el) el.textContent = 'Persisted';
-                AgentModule.delegateTo('mnemos', 'Persisting session state to storage…', 900);
+                try {
+                    localStorage.setItem(CONFIG.MEMORY_KEY, JSON.stringify(payload));
+                    const el = document.getElementById('memoryStatus');
+                    if (el) el.textContent = 'Persisted';
+                    AgentModule.delegateTo('mnemos', 'Persisting session state to storage…', 900);
+                } catch (e) {
+                    const el = document.getElementById('memoryStatus');
+                    if (el) el.textContent = 'Unable to persist session.';
+                    console.warn('Memory persistence failed', e);
+                    AgentModule.delegateTo('mnemos', 'Unable to persist session state to storage.', 1200);
+                }
             },
 
             hydrate() {

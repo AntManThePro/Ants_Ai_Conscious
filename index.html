@@ -1036,7 +1036,7 @@
 
                 this._recognition.onerror = event => {
                     this._isListening = false;
-                    State.process = 'listening';
+                    if (State.process === 'voice-listening') State.process = 'listening';
                     document.body.classList.remove('listening');
                     document.getElementById('voiceStatus').textContent = `❌ ${event.error}`;
                     UIModule.update();

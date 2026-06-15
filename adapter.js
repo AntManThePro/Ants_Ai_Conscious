@@ -168,7 +168,7 @@ const GodModeAdapter = (() => {
     function _buildSystemPrompt(ctx) {
         const thoughts = (ctx.thoughts || [])
             .slice(-MAX_CONTEXT_THOUGHTS)
-            .map(t => `  • ${t.type}: ${t.text}`)
+            .map(t => `  • ${t?.type ?? 'thought'}: ${t?.text ?? ''}`)
             .join('\n');
 
         const topics = (ctx.topics || [])

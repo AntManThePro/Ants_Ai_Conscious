@@ -8,7 +8,8 @@
  *
  * Intent:    Prove the framework operates outside theory.
  * Contracts: Explicit inputs, explicit outputs, no hidden state.
- * Constraints: No window, no document, no localStorage, no Math.random side-effects.
+ * Constraints: No window, no document, no localStorage, and no hidden randomness;
+ * randomness is injectable where needed, with Math.random used only as the default.
  */
 
 'use strict';

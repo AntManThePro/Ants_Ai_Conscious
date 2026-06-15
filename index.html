@@ -1300,18 +1300,8 @@
             });
 
             function resetGodModeAdapter() {
-                if (!GodModeAdapter) return;
-                if (typeof GodModeAdapter.reset === 'function') {
-                    GodModeAdapter.reset();
-                    return;
-                }
-                if (typeof GodModeAdapter.clear === 'function') {
-                    GodModeAdapter.clear();
-                    return;
-                }
-                if (typeof GodModeAdapter.configure === 'function') {
-                    GodModeAdapter.configure(null);
-                }
+                if (!GodModeAdapter || typeof GodModeAdapter.configure !== 'function') return;
+                GodModeAdapter.configure(null);
             }
 
             // Clear button — remove saved config, forget in-memory adapter state, and reset adapter UI.

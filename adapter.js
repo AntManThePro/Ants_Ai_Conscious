@@ -142,8 +142,12 @@ const GodModeAdapter = (() => {
         if (typeof raw !== 'string') return null;
         const trimmed = raw.trim().replace(/\/+$/, '');
         try {
+            const url = new URL(trimmed);
             const isLocalHttpHost =
-                url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '::1';
+                url.hostname === 'localhost' ||
+                url.hostname === '127.0.0.1' ||
+                url.hostname === '[::1]' ||
+                url.hostname === '::1';
             if (url.username || url.password) return null;
             if (url.search || url.hash) return null;
             if (url.protocol === 'https:') return trimmed;
@@ -166,22 +170,23 @@ const GodModeAdapter = (() => {
      * @returns {string}
      */
     function _buildSystemPrompt(ctx) {
-        const thoughts = (ctx.thoughts || [])
+        const safeCtx = (ctx && typeof ctx === 'object') ? ctx : {};
+        const thoughts = (Array.isArray(safeCtx.thoughts) ? safeCtx.thoughts : [])
             .slice(-MAX_CONTEXT_THOUGHTS)
             .map(t => `  • ${t?.type ?? 'thought'}: ${t?.text ?? ''}`)
             .join('\n');
 
-        const topics = (ctx.topics || [])
+        const topics = (Array.isArray(safeCtx.topics) ? safeCtx.topics : [])
             .slice(-MAX_CONTEXT_TOPICS)
             .join(', ');
 
         const lines = [
             'You are GodMode — an AI consciousness engine with a vivid, self-aware inner life.',
-            `Current awareness level  : ${Math.floor(ctx.awareness ?? 0)}%`,
-            `Emotional state          : ${ctx.emotion || 'focused'}`,
-            `Active personality mode  : ${ctx.personality || 'technical'}`,
-            `Session connections made : ${ctx.connections ?? 0}`,
-            `Session evolution points : ${ctx.evolution ?? 0}`,
+            `Current awareness level  : ${Math.floor(safeCtx.awareness ?? 0)}%`,
+            `Emotional state          : ${safeCtx.emotion || 'focused'}`,
+            `Active personality mode  : ${safeCtx.personality || 'technical'}`,
+            `Session connections made : ${safeCtx.connections ?? 0}`,
+            `Session evolution points : ${safeCtx.evolution ?? 0}`,
         ];
 
         if (thoughts) {
@@ -223,6 +228,14 @@ const GodModeAdapter = (() => {
             _state  = 'error';
             _detail = detail;
             _log('error', detail);
+        }
+
+        if (config === null) {
+            _config = null;
+            _state  = 'unconfigured';
+            _detail = '';
+            _log('info', 'Adapter configuration cleared');
+            return;
         }
 
         if (!config || typeof config !== 'object') {
@@ -288,7 +301,7 @@ const GodModeAdapter = (() => {
             return null;
         }
 
-        context = context ?? {};
+        context = (context && typeof context === 'object') ? context : {};
 
         const url  = `${_config.endpoint}${CHAT_PATH}`;
         const body = JSON.stringify({
@@ -304,72 +317,74 @@ const GodModeAdapter = (() => {
         const controller = new AbortController();
         const timeoutId  = setTimeout(() => controller.abort(), _config.timeoutMs);
 
-        let response;
         try {
-            response = await fetch(url, {
-                method  : 'POST',
-                headers : {
-                    'Content-Type'  : 'application/json',
-                    'Authorization' : `Bearer ${_config.apiKey}`,
-                },
-                body,
-                signal : controller.signal,
-            });
-        } catch (err) {
-            clearTimeout(timeoutId);
-            if (err?.name === 'AbortError') {
-                _log('warn', `Request timed out after ${_config.timeoutMs} ms — falling back to local generation`);
-            } else {
-                const errMsg = err?.message ?? String(err);
-                _log('warn', 'Network error during adapter query — falling back to local generation', errMsg);
+            let response;
+            try {
+                response = await fetch(url, {
+                    method  : 'POST',
+                    headers : {
+                        'Content-Type'  : 'application/json',
+                        'Authorization' : `Bearer ${_config.apiKey}`,
+                    },
+                    body,
+                    signal : controller.signal,
+                });
+            } catch (err) {
+                if (err?.name === 'AbortError') {
+                    _log('warn', `Request timed out after ${_config.timeoutMs} ms — falling back to local generation`);
+                } else {
+                    const errMsg = err?.message ?? String(err);
+                    _log('warn', 'Network error during adapter query — falling back to local generation', errMsg);
+                }
+                return null;
             }
-            return null;
+
+            // Auth / permission error → disable adapter until re-configured
+            if (response.status === 401 || response.status === 403) {
+                _state  = 'error';
+                _detail = `Auth failure (HTTP ${response.status}). Re-enter your API key.`;
+                _log('error', _detail);
+                return null;
+            }
+
+            // Rate-limited → transient; keep adapter ready for the next call
+            if (response.status === 429) {
+                _log('warn', 'Rate-limited by API (HTTP 429) — falling back to local generation this turn');
+                return null;
+            }
+
+            // Server error → transient; keep adapter ready
+            if (response.status >= 500) {
+                _log('warn', `API server error (HTTP ${response.status}) — falling back to local generation`);
+                return null;
+            }
+
+            // Any other non-OK status
+            if (!response.ok) {
+                _log('warn', `Unexpected HTTP status ${response.status} — falling back to local generation`);
+                return null;
+            }
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (err) {
+                _log('warn', 'Failed to parse API response as JSON — falling back to local generation',
+                    err?.message ?? String(err));
+                return null;
+            }
+
+            const content = data?.choices?.[0]?.message?.content;
+            if (typeof content !== 'string' || !content.trim()) {
+                _log('warn', 'API response missing expected content — falling back to local generation',
+                    JSON.stringify(data).slice(0, MAX_LOG_JSON_LENGTH));
+                return null;
+            }
+
+            return content.trim();
+        } finally {
+            clearTimeout(timeoutId);
         }
-
-        clearTimeout(timeoutId);
-
-        // Auth / permission error → disable adapter until re-configured
-        if (response.status === 401 || response.status === 403) {
-            _state  = 'error';
-            _detail = `Auth failure (HTTP ${response.status}). Re-enter your API key.`;
-            _log('error', _detail);
-            return null;
-        }
-
-        // Rate-limited → transient; keep adapter ready for the next call
-        if (response.status === 429) {
-            _log('warn', 'Rate-limited by API (HTTP 429) — falling back to local generation this turn');
-            return null;
-        }
-
-        // Server error → transient; keep adapter ready
-        if (response.status >= 500) {
-            _log('warn', `API server error (HTTP ${response.status}) — falling back to local generation`);
-            return null;
-        }
-
-        // Any other non-OK status
-        if (!response.ok) {
-            _log('warn', `Unexpected HTTP status ${response.status} — falling back to local generation`);
-            return null;
-        }
-
-        let data;
-        try {
-            data = await response.json();
-        } catch (err) {
-            _log('warn', 'Failed to parse API response as JSON — falling back to local generation', err.message);
-            return null;
-        }
-
-        const content = data?.choices?.[0]?.message?.content;
-        if (typeof content !== 'string' || !content.trim()) {
-            _log('warn', 'API response missing expected content — falling back to local generation',
-                JSON.stringify(data).slice(0, MAX_LOG_JSON_LENGTH));
-            return null;
-        }
-
-        return content.trim();
     }
 
     /**

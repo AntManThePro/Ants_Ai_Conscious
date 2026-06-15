@@ -963,6 +963,7 @@
         }
 
         // Chat handling
+        let isHandlingSend = false;
         document.getElementById('sendBtn').onclick = handleSend;
         document.getElementById('userInput').onkeypress = (e) => {
             if (e.key === 'Enter') handleSend();
@@ -984,47 +985,53 @@
         async function handleSend() {
             const input = document.getElementById('userInput').value.trim();
             if (!input) return;
-            if (process !== 'listening') {
-                // Force reset if stuck
+            if (isHandlingSend) return;
+            isHandlingSend = true;
+            try {
+                if (process !== 'listening') {
+                    // Force reset if stuck
+                    process = 'listening';
+                }
+
+                connections++;
+                evolution += 15;
+                process = 'analyzing';
+                updateUI();
+                createParticles();
+                rememberTopic(input);
+                saveMemory();
+                audioPrimed = true;
+                playTone('ping');
+
+                // Attempt external API adapter first; fall back to local generation.
+                let response = null;
+                if (GodModeAdapter.status().state === 'ready') {
+                    delegateTo('synthex', 'Querying external API adapter…', 6000);
+                    response = await GodModeAdapter.query(input, getConsciousnessContext());
+                    updateAdapterStatus();
+                }
+
+                if (response === null) {
+                    // Local generation path — brief pause preserves the UX rhythm.
+                    delegateTo('synthex', 'Forging response from consciousness pool…', 2200);
+                    await new Promise(resolve => setTimeout(resolve, LOCAL_GENERATION_DELAY_MS));
+                    response = generateResponse(input);
+                }
+
+                process = 'responding';
+                updateUI();
+
+                addToChat(input, response);
+
+                document.getElementById('userInput').value = '';
+                document.getElementById('voiceStatus').textContent = '';
                 process = 'listening';
+                updateUI();
+                checkMilestones();
+                saveMemory();
+            } finally {
+                isHandlingSend = false;
             }
-
-            connections++;
-            evolution += 15;
-            process = 'analyzing';
-            updateUI();
-            createParticles();
-            rememberTopic(input);
-            saveMemory();
-            audioPrimed = true;
-            playTone('ping');
-
-            // Attempt external API adapter first; fall back to local generation.
-            let response = null;
-            if (GodModeAdapter.status().state === 'ready') {
-                delegateTo('synthex', 'Querying external API adapter…', 6000);
-                response = await GodModeAdapter.query(input, getConsciousnessContext());
-                updateAdapterStatus();
-            }
-
-            if (response === null) {
-                // Local generation path — brief pause preserves the UX rhythm.
-                delegateTo('synthex', 'Forging response from consciousness pool…', 2200);
-                await new Promise(resolve => setTimeout(resolve, LOCAL_GENERATION_DELAY_MS));
-                response = generateResponse(input);
-            }
-
-            process = 'responding';
-            updateUI();
-
-            addToChat(input, response);
-
-            document.getElementById('userInput').value = '';
-            document.getElementById('voiceStatus').textContent = '';
-            process = 'listening';
-            updateUI();
-            checkMilestones();
-            saveMemory();
         }
 
         ['dragover', 'dragenter'].forEach(evt => canvas.addEventListener(evt, (e) => {
@@ -1277,7 +1284,7 @@
                     return;
                 }
 
-                setAdapterMessage(status?.error || 'Adapter configuration failed. Please verify the endpoint, API key, and model.', 'error');
+                setAdapterMessage(status?.detail || 'Adapter configuration failed. Please verify the endpoint, API key, and model.', 'error');
             });
 
             // Test button — fire a minimal live request.

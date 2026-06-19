@@ -69,7 +69,7 @@
  *   2. Adapter NEVER mutates caller state or the DOM.
  *   3. A null return always means the caller MUST use its local fallback.
  *   4. API keys are NEVER logged, serialised, or persisted to any storage.
- *   5. Requests exceeding timeoutMs are aborted via AbortController.
+ *   5. Both the fetch request and response body read are bounded by AbortController (timeoutMs).
  *   6. Re-configuring always resets the error state.
  *
  * ── FAILURE HANDLING ───────────────────────────────────────────────────────────

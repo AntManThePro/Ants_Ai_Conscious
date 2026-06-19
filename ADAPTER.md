@@ -164,6 +164,7 @@ Passed as the `user` role message after trimming leading and trailing whitespace
 | Empty input | No change | `null` | |
 | Network error | No change (`ready`) | `null` | Transient |
 | Request timeout (>10 s) | No change (`ready`) | `null` | Request aborted via AbortController |
+| Body read timeout (>10 s) | No change (`ready`) | `null` | Response headers received but body not fully consumed; abort signal propagates to body stream |
 | HTTP 401 / 403 | `'ready'` → `'error'` | `null` | Adapter disabled until re-configured |
 | HTTP 429 | No change (`ready`) | `null` | Rate-limited; next call may succeed |
 | HTTP 5xx | No change (`ready`) | `null` | Transient server error |
@@ -181,7 +182,7 @@ All failure paths are logged to `console.warn` or `console.error` with the `[God
 2. **Never mutates caller state.** The adapter does not touch `awareness`, `emotion`, `evolution`, or any DOM element.
 3. **Null always means fall back.** If `query()` returns `null`, the caller must use local generation.
 4. **API keys are never persisted.** Keys are stored only in the closure-private `_config` object for the lifetime of the page. They are never written to `localStorage`, `sessionStorage`, cookies, or any log output.
-5. **Requests are always bounded.** Every fetch is wrapped with an `AbortController` and cancelled after `timeoutMs` milliseconds.
+5. **Requests are always bounded.** Every `fetch()` call and its response body read are wrapped with the same `AbortController`, which fires after `timeoutMs` milliseconds — bounding both the network request and JSON body consumption.
 6. **Re-configuring always recovers.** Calling `configure()` with valid parameters resets the `'error'` state.
 
 ---

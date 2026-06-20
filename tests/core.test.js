@@ -335,8 +335,6 @@ describe('applyCatalyst', () => {
 
     test('resulting emotion is a valid EMOTIONS entry', () => {
         // Use seeded random to make deterministic
-        let call = 0;
-        const seeded = () => [0, 0.5, 0.99][call++ % 3];
         [0, 0.5, 0.99].forEach(seed => {
             const next = applyCatalyst(baseState, 'quantum', () => seed);
             assert.ok(EMOTIONS.includes(next.emotion), `unexpected emotion: ${next.emotion}`);
@@ -344,8 +342,17 @@ describe('applyCatalyst', () => {
     });
 
     test('clamps injected random values to a valid emotion index', () => {
-        const next = applyCatalyst(baseState, 'quantum', () => 1);
-        assert.equal(next.emotion, EMOTIONS[EMOTIONS.length - 1]);
+        const cases = [
+            { rand: -0.5, expected: EMOTIONS[0] },
+            { rand: 1, expected: EMOTIONS[EMOTIONS.length - 1] },
+            { rand: 1.5, expected: EMOTIONS[EMOTIONS.length - 1] },
+            { rand: 2, expected: EMOTIONS[EMOTIONS.length - 1] },
+        ];
+
+        cases.forEach(({ rand, expected }) => {
+            const next = applyCatalyst(baseState, 'quantum', () => rand);
+            assert.equal(next.emotion, expected);
+        });
     });
 
     test('does not mutate input state', () => {

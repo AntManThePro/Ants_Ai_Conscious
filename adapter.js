@@ -416,6 +416,12 @@ const GodModeAdapter = (() => {
         return { ok: false, error: s.detail || 'Connection test failed — check the browser console for details.' };
     }
 
+    function reset() {
+        _config = null;
+        _state = 'unconfigured';
+        _detail = '';
+    }
+
     // Expose the public API as a frozen object so callers cannot mutate it
-    return Object.freeze({ configure, status, query, testConnection });
+    return Object.freeze({ configure, status, query, testConnection, reset });
 })();

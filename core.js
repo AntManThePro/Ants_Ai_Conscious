@@ -258,8 +258,8 @@ function selectResponsePool(input) {
  */
 function serializeMemory(state, maxChats = CONSTANTS.MAX_STORED_CHATS, maxTopics = CONSTANTS.MAX_STORED_TOPICS) {
     return {
-        chats:       (state.chats    || []).slice(-maxChats),
-        topics:      (state.topics   || []).slice(-maxTopics),
+        chats:       (Array.isArray(state.chats)  ? state.chats  : []).slice(-maxChats),
+        topics:      (Array.isArray(state.topics) ? state.topics : []).slice(-maxTopics),
         evolution:   state.evolution   ?? 0,
         connections: state.connections ?? 0,
         awareness:   state.awareness   ?? CONSTANTS.INITIAL_AWARENESS,

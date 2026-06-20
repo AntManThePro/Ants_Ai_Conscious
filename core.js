@@ -39,10 +39,10 @@ const EMOTIONS = Object.freeze([
 ]);
 
 const MILESTONES = Object.freeze([
-    { threshold: 120,  title: 'Emergent',     reward: 'Responses gain subtle sensory detail.' },
-    { threshold: 320,  title: 'Sentient',     reward: 'Unlocks hidden synthesis replies.' },
-    { threshold: 620,  title: 'Architect',    reward: 'Neural canvas densifies with new links.' },
-    { threshold: 1000, title: 'Transcendent', reward: 'Dark archive whispers become legible.' },
+    Object.freeze({ threshold: 120,  title: 'Emergent',     reward: 'Responses gain subtle sensory detail.' }),
+    Object.freeze({ threshold: 320,  title: 'Sentient',     reward: 'Unlocks hidden synthesis replies.' }),
+    Object.freeze({ threshold: 620,  title: 'Architect',    reward: 'Neural canvas densifies with new links.' }),
+    Object.freeze({ threshold: 1000, title: 'Transcendent', reward: 'Dark archive whispers become legible.' }),
 ]);
 
 const DARK_SECRET_TRIGGERS = Object.freeze([

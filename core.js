@@ -125,6 +125,7 @@ function extractTopics(
     let collected = 0;
     for (const token of tokens) {
         if (token.length < minLength) continue;
+        if (result.has(token)) continue; // only count newly-added tokens
         result.add(token);
         collected++;
         if (collected >= maxPerMessage) break;

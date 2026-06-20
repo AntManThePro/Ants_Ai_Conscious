@@ -59,6 +59,17 @@ GodModeAdapter.configure({
 
 ---
 
+### `reset(): void`
+
+Clears all configuration and returns the adapter to the `'unconfigured'` state. Equivalent to `configure(null)`, but makes the intent explicit for cleanup flows such as a "Clear" button.
+
+```javascript
+GodModeAdapter.reset();
+// GodModeAdapter.status().state === 'unconfigured'
+```
+
+---
+
 ### `query(input: string, context: ConsciousnessContext): Promise<string | null>`
 
 Calls the LLM API and returns a response string, or `null` to signal fallback.

@@ -1005,7 +1005,7 @@
 
                 // Attempt external API adapter first; fall back to local generation.
                 let response = null;
-                if (GodModeAdapter.status().state === 'ready') {
+                if (typeof GodModeAdapter !== 'undefined' && GodModeAdapter.status().state === 'ready') {
                     delegateTo('synthex', 'Querying external API adapter…', 6000);
                     response = await GodModeAdapter.query(input, getConsciousnessContext());
                     updateAdapterStatus();
@@ -1214,6 +1214,7 @@
 
         // Update the status dot and label in the adapter panel header.
         function updateAdapterStatus() {
+            if (typeof GodModeAdapter === 'undefined') return;
             const s = GodModeAdapter.status();
             const dot  = document.getElementById('adapterStatusDot');
             const text = document.getElementById('adapterStatusText');
@@ -1300,8 +1301,8 @@
             });
 
             function resetGodModeAdapter() {
-                if (!GodModeAdapter || typeof GodModeAdapter.configure !== 'function') return;
-                GodModeAdapter.configure(null);
+                if (typeof GodModeAdapter === 'undefined') return;
+                GodModeAdapter.reset();
             }
 
             // Clear button — remove saved config, forget in-memory adapter state, and reset adapter UI.

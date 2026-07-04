@@ -310,8 +310,9 @@
         // Intentionally excludes quotes and other special characters to prevent
         // HTML attribute injection; length enforced by MAX_CATALYST_WORD_LENGTH.
         const DRAG_WORD_RE = new RegExp(`^[a-zA-Z0-9 _\\-]{1,${MAX_CATALYST_WORD_LENGTH}}$`);
-        // Only allow hex color notation to fully prevent CSS injection via url() or javascript:
-        const CSS_COLOR_RE = /^#[0-9a-fA-F]{3,8}$/;
+        // Only allow valid CSS hex color notation (#RGB, #RGBA, #RRGGBB, #RRGGBBAA)
+        // to fully prevent CSS injection via url() or javascript:
+        const CSS_COLOR_RE = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 
         // ─── Log code taxonomy ────────────────────────────────────────────────
         // ErrorCode unifies both error events and success/info events in one lookup

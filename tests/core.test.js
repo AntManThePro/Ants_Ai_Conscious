@@ -145,6 +145,12 @@ describe('clampAwareness', () => {
         assert.equal(clampAwareness(-1),   0);
         assert.equal(clampAwareness(-999), 0);
     });
+
+    test('returns 0 for non-finite numeric inputs (NaN, Infinity)', () => {
+        assert.equal(clampAwareness(NaN),       0);
+        assert.equal(clampAwareness(Infinity),  0);
+        assert.equal(clampAwareness(-Infinity), 0);
+    });
 });
 
 // ---------------------------------------------------------------------------

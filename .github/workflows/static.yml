@@ -36,8 +36,7 @@ jobs:
       - name: Prepare Pages artifact
         run: |
           mkdir -p dist
-          cp index.html dist/
-      - name: Upload artifact
+          cp index.html core.js adapter.js dist/
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'

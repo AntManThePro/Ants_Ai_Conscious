@@ -488,10 +488,10 @@
 
             recognition.onend = () => {
                 isListening = false;
-                speechRetryCount = 0;
+                const voiceStatus = document.getElementById('voiceStatus').textContent;
+                if (!voiceStatus.includes('Retrying')) speechRetryCount = 0;
                 document.body.classList.remove('listening');
-                if (!document.getElementById('voiceStatus').textContent.includes('Got it')) {
-                    document.getElementById('voiceStatus').textContent = '';
+                if (!voiceStatus.includes('Got it') && !voiceStatus.includes('Retrying')) {
                 }
             };
         }

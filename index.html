@@ -585,7 +585,7 @@
                     <div>Hidden archive recognized: &ldquo;${escapeHTML(word)}&rdquo;. Response channel encrypted.</div>
                 </div>
             ` + chat.innerHTML;
-            delegateTo('darkwire', `Decrypting archive entry for "${escapeHTML(word)}"…`, 2500);
+            delegateTo('darkwire', `Decrypting archive entry for "${word}"…`, 2500);
             playTone('secret');
         }
 

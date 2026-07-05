@@ -1099,6 +1099,7 @@
             }, PROCESS_WATCHDOG_TIMEOUT_MS);
             
             setTimeout(() => {
+                if (!watchdogActive) return;
                 watchdogActive = false;
                 try {
                     process = 'responding';

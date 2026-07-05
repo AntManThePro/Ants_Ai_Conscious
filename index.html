@@ -962,7 +962,14 @@
             updateUI();
             createParticles();
             rememberTopic(input);
-            saveMemory();
+            try {
+                saveMemory();
+            } catch (error) {
+                isSending = false;
+                process = 'listening';
+                updateUI();
+                return;
+            }
             audioPrimed = true;
             playTone('ping');
             delegateTo('synthex', 'Forging response from consciousness pool…', 2200);

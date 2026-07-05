@@ -1091,6 +1091,7 @@
             let watchdogActive = true;
             const watchdog = setTimeout(() => {
                 if (watchdogActive && (process === 'analyzing' || process === 'responding')) {
+                    watchdogActive = false;
                     log(L.WARN, ErrorCode.STATE_STUCK, 'Process watchdog fired — resetting stuck state', { process });
                     process = 'listening';
                     updateUI();

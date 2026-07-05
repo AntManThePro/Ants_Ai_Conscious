@@ -339,7 +339,7 @@
         const MAX_THOUGHTS = 50;
         function pushThought(entry) {
             thoughts.push(entry);
-            if (thoughts.length > MAX_THOUGHTS) thoughts.shift();
+            while (thoughts.length > MAX_THOUGHTS) thoughts.shift();
         }
 
         // Validates that a color string is a safe CSS hex color before injecting

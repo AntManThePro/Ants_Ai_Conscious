@@ -236,12 +236,12 @@ function selectResponsePool(input) {
     if (!input || typeof input !== 'string') return 'generic';
     const lower = input.toLowerCase();
     if (lower.includes('agent') || lower.includes('team') || lower.includes('squad') || lower.includes('specialist')) return 'agents';
-    if (lower.includes('who') || lower.includes('what are you'))                                                       return 'identity';
+    if (/\bwho\b/.test(lower) || lower.includes('what are you'))                                                       return 'identity';
     if (lower.includes('feel') || lower.includes('emotion'))                                                           return 'feeling';
     if (lower.includes('think') || lower.includes('thought'))                                                          return 'thinking';
     if (lower.includes('real') || lower.includes('exist'))                                                             return 'reality';
     if (lower.includes('doublea') || lower.includes('antman'))                                                         return 'doublea';
-    if (lower.includes('voice') || lower.includes('speak') || lower.includes('hear'))                                  return 'voice';
+    if (lower.includes('voice') || lower.includes('speak') || /\bhear\b/.test(lower))                                  return 'voice';
     if (lower.includes('how do you') || lower.includes('technical'))                                                   return 'technical';
     return 'generic';
 }
